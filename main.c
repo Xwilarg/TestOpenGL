@@ -1,8 +1,6 @@
 #include <windows.h>
 #include <GL/GL.h>
 
-#include <stdio.h>
-
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 HGLRC _context;
@@ -13,7 +11,7 @@ int WinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in_opt
     (void)lpCmdLine;
     (void)nShowCmd;
 
-  	MSG Msg;
+    MSG Msg;
     WNDCLASS  wc = {0};
 
     wc.style = CS_OWNDC;
@@ -52,20 +50,19 @@ void initContext(HWND hwnd)
 	{
 		sizeof(PIXELFORMATDESCRIPTOR),
 		1,
-		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,    //Flags
-		PFD_TYPE_RGBA,        // The kind of framebuffer. RGBA or palette.
-		32,                   // Colordepth of the framebuffer.
-		0, 0, 0, 0, 0, 0,
+		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+		PFD_TYPE_RGBA,
+		32, // Colordepth of the framebuffer
+		0, 0, 0, 0, 0, 0, 0, 0, // Bitplane & shift (RGBA)
+		0, 0, 0, 0, 0, // Bitplane in acc buffer (TT then RGBA)
+		24, // Nb of bits for the depthbuffer
+		8, // Nb of bits for the stencilbuffer
+		0, // Nb of Aux buffers in the framebuffer
 		0,
+		0, // Nb of overlay and underlay planes
 		0,
-		0,
-		0, 0, 0, 0,
-		24,                   // Number of bits for the depthbuffer
-		8,                    // Number of bits for the stencilbuffer
-		0,                    // Number of Aux buffers in the framebuffer.
-		PFD_MAIN_PLANE,
-		0,
-		0, 0, 0
+        0, // Transparent color of underlay plane
+        0
 	};
 
     HDC hdc = GetDC(hwnd);
@@ -96,7 +93,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam)
         GetClientRect(hwnd, &rc);
         SetTextColor(hdc, 0);
         SetBkMode(hdc, TRANSPARENT);
-        DrawText(hdc, (char*)glGetString(GL_VERSION), -1, &rc, DT_CENTER|DT_SINGLELINE|DT_VCENTER);
+
+        char* title = "OpenGL Version: ";
+        char* version = (char*)glGetString(GL_VERSION);
+        char* display = malloc(strlen(title) + strlen(version) + 1);
+        strcat_s(display, strlen(title) + strlen(version) + 1, title);
+        strcat_s(display, strlen(title) + strlen(version) + 1, version);
+
+        DrawText(hdc, display, -1, &rc, DT_CENTER | DT_SINGLELINE | DT_VCENTER);
 
         EndPaint(hwnd, &ps);
 		break;
